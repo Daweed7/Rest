@@ -1,76 +1,77 @@
 package ru.kata.spring.boot_security.demo.controller;
 
-import java.security.Principal;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.ModelMap;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import ru.kata.spring.boot_security.demo.configs.WebSecurityConfig;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
-@org.springframework.stereotype.Controller
+@RestController
+@RequestMapping("/api")
 public class Controller {
 
     @Autowired
     UserService userService;
 
-    @GetMapping(value = {"/"})
-    public String homePage() {
-        return "/index";
-    }
-
     @GetMapping("/user")
-    public String userPage(ModelMap modelMap, Principal principal) {
+    public ResponseEntity<User> userPage() {
 
-        User user = userService.findByUsername(principal.getName());
-        modelMap.addAttribute("user", user);
-        return "user";
+        return new ResponseEntity<>(userService.getAuthenticatedUser(), HttpStatus.OK);
     }
 
     @GetMapping("/admin")
-    public String showAllUsers(ModelMap modelMap, @ModelAttribute("user") User user) {
+    public ResponseEntity<List<User>> showAllUsers() {
 
-        List<User> users = userService.listUsers();
-        List<Role> roles = userService.getRoles();
-        modelMap.addAttribute("users", users);
-        modelMap.addAttribute("userAuth", userService.getAuthenticatedUser());
-        modelMap.addAttribute("roles", roles);
-        modelMap.addAttribute("user", user);
-        return "admin";
+        return new ResponseEntity<>(userService.listUsers(), HttpStatus.OK);
     }
 
-    @PostMapping(value = {"/addUser"})
-    public String create(@ModelAttribute("user") User user) {
+    @GetMapping("/roles")
+    public ResponseEntity<List<Role>> showAllRoles() {
 
-        String username = user.getUsername();
-        String password = user.getPassword();
+        return new ResponseEntity<>(userService.getRoles(), HttpStatus.OK);
+    }
 
-        if (username != null && password != null) {
+    @PostMapping("/admin")
+    public ResponseEntity<User> create(@RequestBody User user) {
+
+        if (user != null) {
             userService.create(user);
         }
-        return "redirect:/admin";
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}")
-    public String update(@ModelAttribute("user") User user, @RequestParam List<Role> rolesList) {
-        user.setRoles(rolesList);
+    @PutMapping("/admin/{id}")
+    public ResponseEntity<User> update(@RequestBody User user) {
+        if (!user.getPassword().equals(userService.findById(user.getId()).getPassword())) {
+            user.setPassword(WebSecurityConfig.passwordEncoder().encode(user.getPassword()));
+        }
         userService.edit(user);
 
-        return "redirect:/admin";
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/{id}")
-    public String deleteUser(@PathVariable("id") Long id) {
+    @DeleteMapping("/admin/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
 
         userService.delete(id);
 
-        return "redirect:/admin";
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/admin/{id}")
+    public ResponseEntity<User> showUser(@PathVariable("id") Long id) {
+
+        return new ResponseEntity<>(userService.findById(id), HttpStatus.OK);
     }
 }

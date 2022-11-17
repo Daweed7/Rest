@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>ru.kata</groupId>
-	<artifactId>spring-boot_security-demo-bootstrap</artifactId>
+	<artifactId>spring-boot_security-demo-bootstrap-rest</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>spring-boot_security-bootstrap</name>
-	<description>Demo project for Spring Boot</description>
+	<name>spring-boot_security-bootstrap-rest</name>
+	<description>Demo project for Spring Boot </description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>
@@ -60,6 +60,13 @@
 			<artifactId>thymeleaf-extras-springsecurity5</artifactId>
 			<version>3.0.4.RELEASE</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.14.0</version>
+		</dependency>
+
 
 	</dependencies>
 
